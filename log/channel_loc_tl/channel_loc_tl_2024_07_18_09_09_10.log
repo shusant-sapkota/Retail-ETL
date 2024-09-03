@@ -1,0 +1,61 @@
+2024-07-18T09:09:10.697725+0545 - [Info]: ########################## Operations in DWH_CHANNEL_LOC_LU Table ##########################
+2024-07-18T09:09:10.697725+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:11.370191+0545 - [Info]: Snowflake has been connected successfully
+2024-07-18T09:09:11.370748+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:11.370748+0545 - [Info]: Creating Temp Table: TEMP_CHANNEL_LOC_LU
+2024-07-18T09:09:11.371799+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:11.524360+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS TEMP_CHANNEL_LOC_LU(
+                    LOC_ID INT,
+                    CHANNEL_ID INT
+                    )
+2024-07-18T09:09:11.524876+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:11.524876+0545 - [Info]: If table already exists then truncating temp table: TEMP_CHANNEL_LOC_LU
+2024-07-18T09:09:11.524876+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:11.659695+0545 - [Info]: Query has been executed successfully: TRUNCATE TEMP_CHANNEL_LOC_LU
+2024-07-18T09:09:11.660280+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:12.042660+0545 - [Info]: Query has been executed successfully: INSERT INTO TEMP_CHANNEL_LOC_LU (select * from V_CHANNEL_LOC)
+2024-07-18T09:09:12.042660+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:12.042660+0545 - [Info]: Creating Target Table: DWH_CHANNEL_LOC_LU
+2024-07-18T09:09:12.044033+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:12.162992+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS DWH_CHANNEL_LOC_LU(
+                    CHANNEL_LOC_KEY INT,
+                    LOC_ID INT,
+                    CHANNEL_ID INT,
+                    REC_START_TS TIMESTAMP_LTZ,
+                    REC_END_TS TIMESTAMP_LTZ,
+                    REC_CLOSE_FLG BOOLEAN
+                    )
+2024-07-18T09:09:12.164047+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:12.164047+0545 - [Info]: Updating and Inserting Target Table: DWH_CHANNEL_LOC_LU under SCD Type-1 Approach
+2024-07-18T09:09:12.164047+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:12.506917+0545 - [Info]: Query has been executed successfully: 
+                MERGE INTO DWH_CHANNEL_LOC_LU AS TG
+                USING TEMP_CHANNEL_LOC_LU AS TM
+                ON TG.CHANNEL_ID = TM.CHANNEL_ID
+                WHEN MATCHED AND ((TG.LOC_ID <> TM.LOC_ID))
+                THEN UPDATE SET
+                TG.LOC_ID = TM.LOC_ID,
+                TG.REC_START_TS = CURRENT_TIMESTAMP,
+                TG.REC_END_TS = '2199-12-31 23:59:59.999999'
+                WHEN NOT MATCHED
+                THEN INSERT (CHANNEL_LOC_KEY,LOC_ID,CHANNEL_ID,REC_START_TS,REC_END_TS,REC_CLOSE_FLG)
+                VALUES(COALESCE((SELECT MAX(CHANNEL_ID) FROM TEMP_CHANNEL_LOC_LU WHERE CHANNEL_ID>=0), 0) + RANK() OVER (ORDER BY CHANNEL_ID),
+                TM.LOC_ID, TM.CHANNEL_ID,CURRENT_TIMESTAMP, '2199-12-31 23:59:59.999999',FALSE) 
+                
+2024-07-18T09:09:12.507433+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:12.507946+0545 - [Info]: Closing Inactives of: DWH_CHANNEL_LOC_LU under SCD Type-1 Approach
+2024-07-18T09:09:12.508207+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:12.903950+0545 - [Info]: Query has been executed successfully: 
+            UPDATE DWH_CHANNEL_LOC_LU
+            SET REC_CLOSE_FLG = TRUE,
+            REC_END_TS = CURRENT_TIMESTAMP
+            WHERE CHANNEL_ID NOT IN
+            (SELECT DISTINCT CHANNEL_ID FROM TEMP_CHANNEL_LOC_LU)
+            
+2024-07-18T09:09:12.904504+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:12.904504+0545 - [Info]: ETL of Table: DWH_CHANNEL_LOC_LU  has been completed successfully!!!
+2024-07-18T09:09:12.904504+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:13.028311+0545 - [Info]: Connection has been closed successfully
+2024-07-18T09:09:13.028311+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

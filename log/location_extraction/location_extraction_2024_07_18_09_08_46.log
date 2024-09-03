@@ -1,0 +1,35 @@
+2024-07-18T09:08:46.994224+0545 - [Info]: ####### CONNECTION --> Starting ORACLE Jobs #######
+2024-07-18T09:08:46.995223+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:08:47.180062+0545 - [Info]: Connection has been established sucessfully
+2024-07-18T09:08:47.180062+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:08:47.197886+0545 - [Info]: Fetching ALL data SUCCESSFUL
+2024-07-18T09:08:47.197886+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:08:47.198886+0545 - [Info]: Column Fetching has been SUCCESSFUL
+2024-07-18T09:08:47.198886+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:08:47.199887+0545 - [Info]: ####### CONNECTION --> Starting SNOWFLAKE Jobs #######
+2024-07-18T09:08:47.199887+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:08:48.150118+0545 - [Info]: Snowflake has been connected successfully
+2024-07-18T09:08:48.150118+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:08:48.276476+0545 - [Info]: Query has been executed successfully: 
+    CREATE STAGE IF NOT EXISTS RAW_STAGE
+    COMMENT = 'Internal Stage for storing CSV files of raw data from Oracle'
+    
+2024-07-18T09:08:48.277587+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:08:49.305285+0545 - [Info]: Query has been executed successfully: PUT file://C:/Users/shusant.sapkota/ETLProject/pythonProject/dump/raw/v_location_tr/raw_v_location_tr_full_data_from_oracle.csv @RAW_STAGE/V_LOCATION_TR_RAW AUTO_COMPRESS = FALSE OVERWRITE=TRUE
+2024-07-18T09:08:49.305285+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:08:49.394291+0545 - [Info]: Query has been executed successfully: 
+                    CREATE TABLE IF NOT EXISTS V_LOCATION_TR (
+                      LOC_ID INT,
+                      LOC_NAME VARCHAR(40),
+                      LOC_DESC VARCHAR(40),
+                      LOC_IS_ACTIVE BOOLEAN,
+                      LOC_START_DATE TIMESTAMP_LTZ,
+                      LOC_IS_OPEN BOOLEAN
+                    )
+2024-07-18T09:08:49.394291+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:08:49.589263+0545 - [Info]: Query has been executed successfully: TRUNCATE V_LOCATION_TR
+2024-07-18T09:08:49.589263+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:08:50.027810+0545 - [Info]: Query has been executed successfully: COPY INTO V_LOCATION_TR FROM @RAW_STAGE/V_LOCATION_TR_RAW/raw_v_location_tr_full_data_from_oracle.csv FILE_FORMAT = (FIELD_DELIMITER = ',' SKIP_HEADER=1)
+2024-07-18T09:08:50.028426+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:08:50.037345+0545 - [Info]: Connection has been closed successfully
+2024-07-18T09:08:50.038426+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

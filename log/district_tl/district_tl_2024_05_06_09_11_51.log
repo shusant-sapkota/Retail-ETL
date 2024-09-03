@@ -1,0 +1,61 @@
+2024-05-06T09:11:51.967368+0545 - [Info]: ########################## Operations in DWH_DISTRICT_LU Table ##########################
+2024-05-06T09:11:51.967368+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:52.817849+0545 - [Info]: Snowflake has been connected successfully
+2024-05-06T09:11:52.817849+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:52.818853+0545 - [Info]: Creating Temp Table: TEMP_DISTRICT_LU
+2024-05-06T09:11:52.821403+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:52.925925+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS TEMP_DISTRICT_LU(
+                    DISTRICT_ID INT,
+                    DISTRICT_DESC VARCHAR(40)
+                    )
+2024-05-06T09:11:52.926877+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:52.926877+0545 - [Info]: If table already exists then truncating temp table: TEMP_DISTRICT_LU
+2024-05-06T09:11:52.926877+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:53.181062+0545 - [Info]: Query has been executed successfully: TRUNCATE TEMP_DISTRICT_LU
+2024-05-06T09:11:53.181706+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:53.533117+0545 - [Info]: Query has been executed successfully: INSERT INTO TEMP_DISTRICT_LU (select * from V_DISTRICT_TR)
+2024-05-06T09:11:53.533117+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:53.533117+0545 - [Info]: Creating Target Table: DWH_DISTRICT_LU
+2024-05-06T09:11:53.533117+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:53.632484+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS DWH_DISTRICT_LU(
+                    DISTRICT_KEY INT,
+                    DISTRICT_ID INT,
+                    DISTRICT_DESC VARCHAR(40),
+                    REC_START_TS TIMESTAMP_LTZ,
+                    REC_END_TS TIMESTAMP_LTZ,
+                    REC_CLOSE_FLG BOOLEAN
+                    )
+2024-05-06T09:11:53.632484+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:53.632484+0545 - [Info]: Updating and Inserting Target Table: DWH_DISTRICT_LU under SCD Type-1 Approach
+2024-05-06T09:11:53.633477+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:54.174262+0545 - [Info]: Query has been executed successfully: 
+                MERGE INTO DWH_DISTRICT_LU AS TG
+                USING TEMP_DISTRICT_LU AS TM
+                ON TG.DISTRICT_ID = TM.DISTRICT_ID
+                WHEN MATCHED AND ((TG.DISTRICT_DESC <> TM.DISTRICT_DESC))
+                THEN UPDATE SET
+                TG.DISTRICT_DESC = TM.DISTRICT_DESC,
+                TG.REC_START_TS = CURRENT_TIMESTAMP,
+                TG.REC_END_TS = '2199-12-31 23:59:59.999999'
+                WHEN NOT MATCHED
+                THEN INSERT (DISTRICT_KEY,DISTRICT_ID,DISTRICT_DESC,REC_START_TS,REC_END_TS,REC_CLOSE_FLG)
+                VALUES(COALESCE((SELECT MAX(DISTRICT_ID) FROM TEMP_DISTRICT_LU WHERE DISTRICT_ID>=0), 0) + RANK() OVER (ORDER BY DISTRICT_ID),
+                TM.DISTRICT_ID, TM.DISTRICT_DESC, CURRENT_TIMESTAMP, '2199-12-31 23:59:59.999999',FALSE) 
+                
+2024-05-06T09:11:54.174262+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:54.174262+0545 - [Info]: Closing Inactives of: DWH_DISTRICT_LU under SCD Type-1 Approach
+2024-05-06T09:11:54.175249+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:54.573995+0545 - [Info]: Query has been executed successfully: 
+            UPDATE DWH_DISTRICT_LU
+            SET REC_CLOSE_FLG = TRUE,
+            REC_END_TS = CURRENT_TIMESTAMP
+            WHERE DISTRICT_ID NOT IN
+            (SELECT DISTINCT DISTRICT_ID FROM TEMP_DISTRICT_LU)
+            
+2024-05-06T09:11:54.573995+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:54.573995+0545 - [Info]: ETL of Table: DWH_DISTRICT_LU  has been completed successfully!!!
+2024-05-06T09:11:54.575029+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:11:54.797320+0545 - [Info]: Connection has been closed successfully
+2024-05-06T09:11:54.797320+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

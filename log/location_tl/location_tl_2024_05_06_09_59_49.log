@@ -1,0 +1,73 @@
+2024-05-06T09:59:49.386599+0545 - [Info]: ########################## Operations in DWH_LOCATION_LU Table ##########################
+2024-05-06T09:59:49.387596+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:50.644335+0545 - [Info]: Snowflake has been connected successfully
+2024-05-06T09:59:50.644335+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:50.645330+0545 - [Info]: Creating Temp Table: TEMP_LOCATION_LU
+2024-05-06T09:59:50.645330+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:50.759972+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS TEMP_LOCATION_LU(
+                    LOC_ID INT,
+                    LOC_NAME VARCHAR(40),
+                    LOC_DESC VARCHAR(40),
+                    LOC_IS_ACTIVE BOOLEAN,
+                    LOC_START_DATE TIMESTAMP_LTZ,
+                    LOC_IS_OPEN BOOLEAN
+                    )
+2024-05-06T09:59:50.759972+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:50.759972+0545 - [Info]: If table already exists then truncating temp table: TEMP_LOCATION_LU
+2024-05-06T09:59:50.759972+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:50.987106+0545 - [Info]: Query has been executed successfully: TRUNCATE TEMP_LOCATION_LU
+2024-05-06T09:59:50.988099+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:51.592072+0545 - [Info]: Query has been executed successfully: INSERT INTO TEMP_LOCATION_LU (select * from V_LOCATION_TR)
+2024-05-06T09:59:51.593068+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:51.593068+0545 - [Info]: Creating Target Table: DWH_LOCATION_LU
+2024-05-06T09:59:51.593068+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:51.702770+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS DWH_LOCATION_LU(
+                    LOC_KEY INT,
+                    LOC_ID INT,
+                    LOC_NAME VARCHAR(40),
+                    LOC_DESC VARCHAR(40),
+                    LOC_IS_ACTIVE BOOLEAN,
+                    LOC_START_DATE TIMESTAMP_LTZ,
+                    LOC_IS_OPEN BOOLEAN,
+                    REC_START_TS TIMESTAMP_LTZ,
+                    REC_END_TS TIMESTAMP_LTZ,
+                    REC_CLOSE_FLG BOOLEAN
+                    )
+2024-05-06T09:59:51.703766+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:51.703766+0545 - [Info]: Updating and Inserting Target Table: DWH_LOCATION_LU under SCD Type-1 Approach
+2024-05-06T09:59:51.703766+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:52.725943+0545 - [Info]: Query has been executed successfully: 
+                MERGE INTO DWH_LOCATION_LU AS TG
+                USING TEMP_LOCATION_LU AS TM
+                ON TG.LOC_ID = TM.LOC_ID
+                WHEN MATCHED AND ((TG.LOC_NAME <> TM.LOC_NAME) OR (TG.LOC_DESC <> TM.LOC_DESC) OR (TG.LOC_IS_ACTIVE <> TM.LOC_IS_ACTIVE) OR (TG.LOC_IS_OPEN <> TM.LOC_IS_OPEN) OR (TG.LOC_START_DATE <> TM.LOC_START_DATE))
+                THEN UPDATE SET
+                TG.LOC_NAME = TM.LOC_NAME,
+                TG.LOC_DESC = TM.LOC_DESC,
+                TG.LOC_IS_ACTIVE = TM.LOC_IS_ACTIVE,
+                TG.LOC_IS_OPEN = TM.LOC_IS_OPEN,
+                TG.LOC_START_DATE = TM.LOC_START_DATE,
+                TG.REC_START_TS = CURRENT_TIMESTAMP,
+                TG.REC_END_TS = '2199-12-31 23:59:59.999999'
+                WHEN NOT MATCHED
+                THEN INSERT (LOC_KEY,LOC_ID,LOC_NAME,LOC_DESC,LOC_IS_ACTIVE,LOC_START_DATE,LOC_IS_OPEN,REC_START_TS,REC_END_TS,REC_CLOSE_FLG)
+                VALUES(COALESCE((SELECT MAX(LOC_ID) FROM TEMP_LOCATION_LU WHERE LOC_ID>=0), 0) + RANK() OVER (ORDER BY LOC_ID),
+                TM.LOC_ID,TM.LOC_NAME,TM.LOC_DESC,TM.LOC_IS_ACTIVE,TM.LOC_START_DATE,TM.LOC_IS_OPEN,CURRENT_TIMESTAMP, '2199-12-31 23:59:59.999999',FALSE) 
+                
+2024-05-06T09:59:52.725943+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:52.725943+0545 - [Info]: Closing Inactives of: DWH_LOCATION_LU under SCD Type-1 Approach
+2024-05-06T09:59:52.725943+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:52.963871+0545 - [Info]: Query has been executed successfully: 
+            UPDATE DWH_LOCATION_LU
+            SET REC_CLOSE_FLG = TRUE,
+            REC_END_TS = CURRENT_TIMESTAMP
+            WHERE LOC_ID NOT IN
+            (SELECT DISTINCT LOC_ID FROM TEMP_LOCATION_LU)
+            
+2024-05-06T09:59:52.963871+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:52.963871+0545 - [Info]: ETL of Table: DWH_LOCATION_LU  has been completed successfully!!!
+2024-05-06T09:59:52.964772+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:59:53.116284+0545 - [Info]: Connection has been closed successfully
+2024-05-06T09:59:53.116284+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

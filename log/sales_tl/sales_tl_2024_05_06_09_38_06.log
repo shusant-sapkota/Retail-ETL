@@ -1,0 +1,33 @@
+2024-05-06T09:38:06.459334+0545 - [Info]: ########################## Operations in DWH_SALES_TXN_MASTER Table ##########################
+2024-05-06T09:38:06.459334+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.175480+0545 - [Info]: Snowflake has been connected successfully
+2024-05-06T09:38:07.176476+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.176476+0545 - [Info]: Creating Temp Table: TEMP_SALES_TXN_DAY
+2024-05-06T09:38:07.177244+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.266434+0545 - [Error]: Query could not be executed with error: 090106 (22000): Cannot perform CREATE TABLE. This session does not have a current schema. Call 'USE SCHEMA', or use a qualified name.
+2024-05-06T09:38:07.267435+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.267435+0545 - [Info]: If table already exists then truncating temp table: TEMP_SALES_TXN_DAY
+2024-05-06T09:38:07.268426+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.358985+0545 - [Error]: Query could not be executed with error: 090106 (22000): Cannot perform TRUNCATE. This session does not have a current schema. Call 'USE SCHEMA', or use a qualified name.
+2024-05-06T09:38:07.359985+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.444502+0545 - [Error]: Query could not be executed with error: 002003 (42S02): SQL compilation error:
+Object 'V_SALES_TXN_DAY' does not exist or not authorized.
+2024-05-06T09:38:07.444502+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.444502+0545 - [Info]: Creating Target Table: DWH_SALES_TXN_MASTER
+2024-05-06T09:38:07.444502+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.531893+0545 - [Error]: Query could not be executed with error: 090106 (22000): Cannot perform CREATE TABLE. This session does not have a current schema. Call 'USE SCHEMA', or use a qualified name.
+2024-05-06T09:38:07.532770+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.532770+0545 - [Info]: Updating and Inserting Target Table: DWH_SALES_TXN_MASTER under SCD Type-1 Approach
+2024-05-06T09:38:07.532770+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.626362+0545 - [Error]: Query could not be executed with error: 002003 (42S02): SQL compilation error:
+Object 'TEMP_SALES_TXN_DAY' does not exist or not authorized.
+2024-05-06T09:38:07.626362+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.626362+0545 - [Info]: Closing Inactives of: DWH_SALES_TXN_MASTER under SCD Type-1 Approach
+2024-05-06T09:38:07.626362+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.722436+0545 - [Error]: Query could not be executed with error: 002003 (42S02): SQL compilation error:
+Object 'DWH_SALES_TXN_MASTER' does not exist or not authorized.
+2024-05-06T09:38:07.722436+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.722436+0545 - [Info]: ETL of Table: DWH_SALES_TXN_MASTER  has been completed successfully!!!
+2024-05-06T09:38:07.723517+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:38:07.866267+0545 - [Info]: Connection has been closed successfully
+2024-05-06T09:38:07.866267+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

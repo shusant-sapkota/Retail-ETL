@@ -1,0 +1,67 @@
+2024-07-18T09:09:29.436195+0545 - [Info]: ########################## Operations in DWH_ORG_LOC_LU Table ##########################
+2024-07-18T09:09:29.437263+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:30.241867+0545 - [Info]: Snowflake has been connected successfully
+2024-07-18T09:09:30.241867+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:30.243124+0545 - [Info]: Creating Temp Table: TEMP_ORG_LOC_LU
+2024-07-18T09:09:30.243704+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:30.372688+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS TEMP_ORG_LOC_LU(
+                    LOC_ID INT,
+                    ORG_ID INT,
+                    ORG_DESC VARCHAR(40),
+                    ORG_IS_ACTIVE_FLG BOOLEAN
+                    )
+2024-07-18T09:09:30.374095+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:30.374095+0545 - [Info]: If table already exists then truncating temp table: TEMP_ORG_LOC_LU
+2024-07-18T09:09:30.374095+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:30.984643+0545 - [Info]: Query has been executed successfully: TRUNCATE TEMP_ORG_LOC_LU
+2024-07-18T09:09:30.984643+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:31.303561+0545 - [Info]: Query has been executed successfully: INSERT INTO TEMP_ORG_LOC_LU (select * from V_ORG_LOC)
+2024-07-18T09:09:31.303561+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:31.303561+0545 - [Info]: Creating Target Table: DWH_ORG_LOC_LU
+2024-07-18T09:09:31.304717+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:31.829943+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS DWH_ORG_LOC_LU(
+                    ORG_KEY INT,
+                    LOC_ID INT,
+                    ORG_ID INT,
+                    ORG_DESC VARCHAR(40),
+                    ORG_IS_ACTIVE_FLG BOOLEAN,
+                    REC_START_TS TIMESTAMP_LTZ,
+                    REC_END_TS TIMESTAMP_LTZ,
+                    REC_CLOSE_FLG BOOLEAN
+                    )
+2024-07-18T09:09:31.829943+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:31.829943+0545 - [Info]: Updating and Inserting Target Table: DWH_ORG_LOC_LU under SCD Type-1 Approach
+2024-07-18T09:09:31.829943+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:32.219222+0545 - [Info]: Query has been executed successfully: 
+                MERGE INTO DWH_ORG_LOC_LU AS TG
+                USING TEMP_ORG_LOC_LU AS TM
+                ON TG.ORG_ID = TM.ORG_ID
+                WHEN MATCHED AND ((TG.ORG_DESC <> TM.ORG_DESC) or (TG.ORG_IS_ACTIVE_FLG <> TM.ORG_IS_ACTIVE_FLG) or (TG.LOC_ID <> TM.LOC_ID))
+                THEN UPDATE SET
+                TG.LOC_ID = TM.LOC_ID,
+                TG.ORG_DESC = TM.ORG_DESC,
+                TG.ORG_IS_ACTIVE_FLG = TM.ORG_IS_ACTIVE_FLG,
+                TG.REC_START_TS = CURRENT_TIMESTAMP,
+                TG.REC_END_TS = '2199-12-31 23:59:59.999999'
+                WHEN NOT MATCHED
+                THEN INSERT (ORG_KEY,LOC_ID,ORG_ID,ORG_DESC,ORG_IS_ACTIVE_FLG,REC_START_TS,REC_END_TS,REC_CLOSE_FLG)
+                VALUES(COALESCE((SELECT MAX(ORG_ID) FROM TEMP_ORG_LOC_LU WHERE ORG_ID>=0), 0) + RANK() OVER (ORDER BY ORG_ID),
+                TM.LOC_ID, TM.ORG_ID, TM.ORG_DESC, TM.ORG_IS_ACTIVE_FLG,CURRENT_TIMESTAMP, '2199-12-31 23:59:59.999999',FALSE) 
+                
+2024-07-18T09:09:32.219222+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:32.219222+0545 - [Info]: Closing Inactives of: DWH_ORG_LOC_LU under SCD Type-1 Approach
+2024-07-18T09:09:32.219222+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:32.594717+0545 - [Info]: Query has been executed successfully: 
+            UPDATE DWH_ORG_LOC_LU
+            SET REC_CLOSE_FLG = TRUE,
+            REC_END_TS = CURRENT_TIMESTAMP
+            WHERE ORG_ID NOT IN
+            (SELECT DISTINCT ORG_ID FROM TEMP_ORG_LOC_LU)
+            
+2024-07-18T09:09:32.594717+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:32.595787+0545 - [Info]: ETL of Table: DWH_ORG_LOC_LU  has been completed successfully!!!
+2024-07-18T09:09:32.595787+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T09:09:32.725424+0545 - [Info]: Connection has been closed successfully
+2024-07-18T09:09:32.725424+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

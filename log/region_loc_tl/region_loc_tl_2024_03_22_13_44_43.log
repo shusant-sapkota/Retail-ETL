@@ -1,0 +1,61 @@
+2024-03-22T13:44:43.141265+0545 - [Info]: ########################## Operations in DWH_REGION_LOC_LU Table ##########################
+2024-03-22T13:44:43.141265+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:43.866396+0545 - [Info]: Snowflake has been connected successfully
+2024-03-22T13:44:43.867394+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:43.867394+0545 - [Info]: Creating Temp Table: TEMP_REGION_LOC_LU
+2024-03-22T13:44:43.868797+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:44.034859+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS TEMP_REGION_LOC_LU(
+                    LOC_ID INT,
+                    REGION_ID INT
+                    )
+2024-03-22T13:44:44.034859+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:44.034859+0545 - [Info]: If table already exists then truncating temp table: TEMP_REGION_LOC_LU
+2024-03-22T13:44:44.035834+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:44.198999+0545 - [Info]: Query has been executed successfully: TRUNCATE TEMP_REGION_LOC_LU
+2024-03-22T13:44:44.199832+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:44.594222+0545 - [Info]: Query has been executed successfully: INSERT INTO TEMP_REGION_LOC_LU (select * from V_REGION_LOC)
+2024-03-22T13:44:44.594222+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:44.594222+0545 - [Info]: Creating Target Table: DWH_REGION_LOC_LU
+2024-03-22T13:44:44.595231+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:44.730791+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS DWH_REGION_LOC_LU(
+                    REGION_LOC_KEY INT,
+                    LOC_ID INT,
+                    REGION_ID INT,
+                    REC_START_TS TIMESTAMP_LTZ,
+                    REC_END_TS TIMESTAMP_LTZ,
+                    REC_CLOSE_FLG BOOLEAN
+                    )
+2024-03-22T13:44:44.730791+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:44.730791+0545 - [Info]: Updating and Inserting Target Table: DWH_REGION_LOC_LU under SCD Type-1 Approach
+2024-03-22T13:44:44.730791+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:45.084591+0545 - [Info]: Query has been executed successfully: 
+                MERGE INTO DWH_REGION_LOC_LU AS TG
+                USING TEMP_REGION_LOC_LU AS TM
+                ON TG.REGION_ID = TM.REGION_ID
+                WHEN MATCHED AND ((TG.LOC_ID <> TM.LOC_ID))
+                THEN UPDATE SET
+                TG.LOC_ID = TM.LOC_ID,
+                TG.REC_START_TS = CURRENT_TIMESTAMP,
+                TG.REC_END_TS = '2199-12-31 23:59:59.999999'
+                WHEN NOT MATCHED
+                THEN INSERT (REGION_LOC_KEY,LOC_ID,REGION_ID,REC_START_TS,REC_END_TS,REC_CLOSE_FLG)
+                VALUES(COALESCE((SELECT MAX(REGION_ID) FROM TEMP_REGION_LOC_LU WHERE REGION_ID>=0), 0) + RANK() OVER (ORDER BY REGION_ID),
+                TM.LOC_ID, TM.REGION_ID,CURRENT_TIMESTAMP, '2199-12-31 23:59:59.999999',FALSE) 
+                
+2024-03-22T13:44:45.084591+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:45.084591+0545 - [Info]: Closing Inactives of: DWH_REGION_LOC_LU under SCD Type-1 Approach
+2024-03-22T13:44:45.084591+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:45.374266+0545 - [Info]: Query has been executed successfully: 
+            UPDATE DWH_REGION_LOC_LU
+            SET REC_CLOSE_FLG = TRUE,
+            REC_END_TS = CURRENT_TIMESTAMP
+            WHERE REGION_ID NOT IN
+            (SELECT DISTINCT REGION_ID FROM TEMP_REGION_LOC_LU)
+            
+2024-03-22T13:44:45.374266+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:45.374266+0545 - [Info]: ETL of Table: DWH_REGION_LOC_LU  has been completed successfully!!!
+2024-03-22T13:44:45.374266+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-03-22T13:44:45.585992+0545 - [Info]: Connection has been closed successfully
+2024-03-22T13:44:45.585992+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

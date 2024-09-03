@@ -1,0 +1,55 @@
+2024-07-18T15:02:15.473037+0545 - [Info]: ########################## Operations in DWH_SALES_TXN_MASTER Table ##########################
+2024-07-18T15:02:15.474124+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:16.527020+0545 - [Info]: Snowflake has been connected successfully
+2024-07-18T15:02:16.527020+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:16.527020+0545 - [Info]: Creating Temp Table: TEMP_SALES_TXN_DAY
+2024-07-18T15:02:16.528260+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:16.616129+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS TEMP_SALES_TXN_DAY(
+                    TXN_DT DATE,
+                    BUSINESS_DT DATE,
+                    TXN_ID NUMBER(38,0),
+                    ITEM_ID NUMBER(38,0),
+                    LOC_ID NUMBER(38,0),
+                    TXN_TYP VARCHAR(5),
+                    SALES_AMOUNT FLOAT,
+                    SALES_QUANTITY NUMBER(38,0),
+                    SALES_COST FLOAT,
+                    SALES_DISCOUNT FLOAT
+                    )
+2024-07-18T15:02:16.616129+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:16.616129+0545 - [Info]: If table already exists then truncating temp table: TEMP_SALES_TXN_DAY
+2024-07-18T15:02:16.617301+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:16.825334+0545 - [Info]: Query has been executed successfully: TRUNCATE TEMP_SALES_TXN_DAY
+2024-07-18T15:02:16.825334+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:17.140353+0545 - [Info]: Query has been executed successfully: INSERT INTO TEMP_SALES_TXN_DAY (select * from V_SALES_TXN_DAY)
+2024-07-18T15:02:17.140353+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:17.140353+0545 - [Info]: Creating Target Table: DWH_SALES_TXN_MASTER
+2024-07-18T15:02:17.140353+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:17.229609+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS DWH_SALES_TXN_MASTER(
+                    TXN_DT TIMESTAMP_NTZ(9),
+                    BUSINESS_DT TIMESTAMP_NTZ(9),
+                    DAY_KEY TIMESTAMP_NTZ(9),
+                    TXN_ID NUMBER(38,0),
+                    TXN_KEY NUMBER(38,0),
+                    ITEM_ID NUMBER(38,0),
+                    TXN_LINE_ITEM_KEY NUMBER(38,0),
+                    LOC_ID NUMBER(38,0),
+                    LOC_KEY NUMBER(38,0),
+                    TXN_TYP VARCHAR(5),
+                    SALES_AMOUNT FLOAT,
+                    SALES_QUANTITY FLOAT,
+                    SALES_COST FLOAT,
+                    SALES_DISCOUNT FLOAT
+                    )
+2024-07-18T15:02:17.230661+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:17.230661+0545 - [Info]: Updating and Inserting Target Table: DWH_SALES_TXN_MASTER under SCD Type-1 Approach
+2024-07-18T15:02:17.230661+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:17.333856+0545 - [Error]: Query could not be executed with error: 000904 (42000): SQL compilation error: error line 17 at position 195
+invalid identifier 'LOC_KEY'
+2024-07-18T15:02:17.333856+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:17.335030+0545 - [Info]: ETL of Table: DWH_SALES_TXN_MASTER  has been completed successfully!!!
+2024-07-18T15:02:17.335030+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:02:17.479605+0545 - [Info]: Connection has been closed successfully
+2024-07-18T15:02:17.480705+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

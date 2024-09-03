@@ -1,0 +1,39 @@
+2024-05-06T11:18:39.372971+0545 - [Info]: ####### CONNECTION --> Starting ORACLE Jobs #######
+2024-05-06T11:18:39.373722+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T11:18:39.883888+0545 - [Info]: Connection has been established sucessfully
+2024-05-06T11:18:39.884881+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T11:18:40.137473+0545 - [Info]: Fetching ALL data SUCCESSFUL
+2024-05-06T11:18:40.139497+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T11:18:40.140463+0545 - [Info]: Column Fetching has been SUCCESSFUL
+2024-05-06T11:18:40.140463+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T11:18:40.141738+0545 - [Info]: ####### CONNECTION --> Starting SNOWFLAKE Jobs #######
+2024-05-06T11:18:40.142459+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T11:18:42.000143+0545 - [Info]: Snowflake has been connected successfully
+2024-05-06T11:18:42.001112+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T11:18:42.129480+0545 - [Info]: Query has been executed successfully: 
+    CREATE STAGE IF NOT EXISTS RAW_STAGE
+    COMMENT = 'Internal Stage for storing CSV files of raw data from Oracle'
+    
+2024-05-06T11:18:42.130336+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T11:18:43.446047+0545 - [Info]: Query has been executed successfully: PUT file://C:/Users/shusant.sapkota/ETLProject/pythonProject/dump/raw/v_sales_txn_day/raw_v_sales_txn_day_full_data_from_oracle.csv @RAW_STAGE/V_SALES_TXN_DAY_RAW AUTO_COMPRESS = FALSE OVERWRITE=TRUE
+2024-05-06T11:18:43.447042+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T11:18:43.601939+0545 - [Info]: Query has been executed successfully: 
+                    CREATE TABLE IF NOT EXISTS V_SALES_TXN_DAY (
+                    TXN_DT DATETIME,
+                    BUSINESS_DT DATETIME,
+                    TXN_ID INT ,
+                    ITEM_ID INT,
+                    LOC_ID INT,
+                    TXN_TYP VARCHAR(5),
+                    SALES_AMOUNT DOUBLE,
+                    SALES_QUANTITY INT,
+                    SALES_COST DOUBLE,
+                    SALES_DISCOUNT DOUBLE
+                    )
+2024-05-06T11:18:43.603287+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T11:18:43.797554+0545 - [Info]: Query has been executed successfully: TRUNCATE V_SALES_TXN_DAY
+2024-05-06T11:18:43.797554+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T11:18:44.533947+0545 - [Info]: Query has been executed successfully: COPY INTO V_SALES_TXN_DAY FROM @RAW_STAGE/V_SALES_TXN_DAY_RAW/raw_v_sales_txn_day_full_data_from_oracle.csv FILE_FORMAT = (FIELD_DELIMITER = ',' SKIP_HEADER=1)
+2024-05-06T11:18:44.534794+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T11:18:44.611407+0545 - [Info]: Connection has been closed successfully
+2024-05-06T11:18:44.611407+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

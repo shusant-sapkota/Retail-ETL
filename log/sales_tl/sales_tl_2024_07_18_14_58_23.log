@@ -1,0 +1,60 @@
+2024-07-18T14:58:23.381710+0545 - [Info]: ########################## Operations in DWH_SALES_TXN_MASTER Table ##########################
+2024-07-18T14:58:23.382708+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:24.462218+0545 - [Info]: Snowflake has been connected successfully
+2024-07-18T14:58:24.462218+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:24.462218+0545 - [Info]: Creating Temp Table: TEMP_SALES_TXN_DAY
+2024-07-18T14:58:24.462218+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:24.569187+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS TEMP_SALES_TXN_DAY(
+                    TXN_DT DATE,
+                    BUSINESS_DT DATE,
+                    TXN_ID NUMBER(38,0),
+                    ITEM_ID NUMBER(38,0),
+                    LOC_ID NUMBER(38,0),
+                    TXN_TYP VARCHAR(5),
+                    SALES_AMOUNT FLOAT,
+                    SALES_QUANTITY NUMBER(38,0),
+                    SALES_COST FLOAT,
+                    SALES_DISCOUNT FLOAT
+                    )
+2024-07-18T14:58:24.569187+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:24.570404+0545 - [Info]: If table already exists then truncating temp table: TEMP_SALES_TXN_DAY
+2024-07-18T14:58:24.570404+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:24.826061+0545 - [Info]: Query has been executed successfully: TRUNCATE TEMP_SALES_TXN_DAY
+2024-07-18T14:58:24.826061+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:25.454248+0545 - [Info]: Query has been executed successfully: INSERT INTO TEMP_SALES_TXN_DAY (select * from V_SALES_TXN_DAY)
+2024-07-18T14:58:25.455247+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:25.455247+0545 - [Info]: Creating Target Table: DWH_SALES_TXN_MASTER
+2024-07-18T14:58:25.455247+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:25.589461+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS DWH_SALES_TXN_MASTER(
+                    TXN_DT TIMESTAMP_NTZ(9),
+                    BUSINESS_DT TIMESTAMP_NTZ(9),
+                    DAY_KEY TIMESTAMP_NTZ(9),
+                    TXN_ID NUMBER(38,0),
+                    TXN_KEY NUMBER(38,0),
+                    ITEM_ID NUMBER(38,0),
+                    TXN_LINE_ITEM_KEY NUMBER(38,0),
+                    LOC_ID NUMBER(38,0),
+                    LOC_KEY NUMBER(38,0),
+                    TXN_TYP VARCHAR(5),
+                    SALES_AMOUNT FLOAT,
+                    SALES_QUANTITY FLOAT,
+                    SALES_COST FLOAT,
+                    SALES_DISCOUNT FLOAT
+                    )
+2024-07-18T14:58:25.589461+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:25.589461+0545 - [Info]: Updating and Inserting Target Table: DWH_SALES_TXN_MASTER under SCD Type-1 Approach
+2024-07-18T14:58:25.590461+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:25.691388+0545 - [Error]: Query could not be executed with error: 000904 (42000): SQL compilation error: error line 16 at position 127
+invalid identifier 'TEMP_SALES_TXN_DAY'
+2024-07-18T14:58:25.691388+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:25.692383+0545 - [Info]: Closing Inactives of: DWH_SALES_TXN_MASTER under SCD Type-1 Approach
+2024-07-18T14:58:25.692383+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:25.783572+0545 - [Error]: Query could not be executed with error: 000904 (42000): SQL compilation error: error line 2 at position 16
+invalid identifier 'REC_CLOSE_FLG'
+2024-07-18T14:58:25.784575+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:25.784642+0545 - [Info]: ETL of Table: DWH_SALES_TXN_MASTER  has been completed successfully!!!
+2024-07-18T14:58:25.784642+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T14:58:25.925874+0545 - [Info]: Connection has been closed successfully
+2024-07-18T14:58:25.925874+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

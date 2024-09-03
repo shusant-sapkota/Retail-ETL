@@ -1,0 +1,2 @@
+REGION_ID INT,
+                      REGION_DESC VARCHAR(40)

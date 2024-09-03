@@ -1,0 +1,67 @@
+2024-05-06T09:42:47.699392+0545 - [Info]: ########################## Operations in DWH_AREA_LU Table ##########################
+2024-05-06T09:42:47.699392+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:48.384978+0545 - [Info]: Snowflake has been connected successfully
+2024-05-06T09:42:48.384978+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:48.385975+0545 - [Info]: Creating Temp Table: TEMP_AREA_LU
+2024-05-06T09:42:48.385975+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:48.522456+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS TEMP_AREA_LU(
+                    LOC_ID INT,
+                    AREA_ID INT,
+                    AREA_DESC VARCHAR(40),
+                    AREA_IS_ACTIVE_FLG BOOLEAN
+                    )
+2024-05-06T09:42:48.522456+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:48.523475+0545 - [Info]: If table already exists then truncating temp table: TEMP_AREA_LU
+2024-05-06T09:42:48.523475+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:48.653276+0545 - [Info]: Query has been executed successfully: TRUNCATE TEMP_AREA_LU
+2024-05-06T09:42:48.654466+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:49.035462+0545 - [Info]: Query has been executed successfully: INSERT INTO TEMP_AREA_LU (select * from V_AREA_TR)
+2024-05-06T09:42:49.035803+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:49.036459+0545 - [Info]: Creating Target Table: DWH_AREA_LU
+2024-05-06T09:42:49.036459+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:49.191521+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS DWH_AREA_LU(
+                    AREA_KEY INT,
+                    LOC_ID INT,
+                    AREA_ID INT,
+                    AREA_DESC VARCHAR(40),
+                    AREA_IS_ACTIVE_FLG BOOLEAN,
+                    REC_START_TS TIMESTAMP_LTZ,
+                    REC_END_TS TIMESTAMP_LTZ,
+                    REC_CLOSE_FLG BOOLEAN
+                    )
+2024-05-06T09:42:49.191521+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:49.192519+0545 - [Info]: Updating and Inserting Target Table: DWH_AREA_LU under SCD Type-1 Approach
+2024-05-06T09:42:49.192519+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:49.536341+0545 - [Info]: Query has been executed successfully: 
+                MERGE INTO DWH_AREA_LU AS TG
+                USING TEMP_AREA_LU AS TM
+                ON TG.AREA_ID = TM.AREA_ID
+                WHEN MATCHED AND ((TG.AREA_DESC <> TM.AREA_DESC) or (TG.AREA_IS_ACTIVE_FLG <> TM.AREA_IS_ACTIVE_FLG) or (TG.LOC_ID <> TM.LOC_ID))
+                THEN UPDATE SET
+                TG.LOC_ID = TM.LOC_ID,
+                TG.AREA_DESC = TM.AREA_DESC,
+                TG.AREA_IS_ACTIVE_FLG = TM.AREA_IS_ACTIVE_FLG,
+                TG.REC_START_TS = CURRENT_TIMESTAMP,
+                TG.REC_END_TS = '2199-12-31 23:59:59.999999'
+                WHEN NOT MATCHED
+                THEN INSERT (AREA_KEY,LOC_ID,AREA_ID,AREA_DESC,AREA_IS_ACTIVE_FLG,REC_START_TS,REC_END_TS,REC_CLOSE_FLG)
+                VALUES(COALESCE((SELECT MAX(AREA_ID) FROM TEMP_AREA_LU WHERE AREA_ID>=0), 0) + RANK() OVER (ORDER BY AREA_ID),
+                TM.LOC_ID, TM.AREA_ID, TM.AREA_DESC, TM.AREA_IS_ACTIVE_FLG,CURRENT_TIMESTAMP, '2199-12-31 23:59:59.999999',FALSE) 
+                
+2024-05-06T09:42:49.536341+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:49.537339+0545 - [Info]: Closing Inactives of: DWH_AREA_LU under SCD Type-1 Approach
+2024-05-06T09:42:49.537339+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:49.807517+0545 - [Info]: Query has been executed successfully: 
+            UPDATE DWH_AREA_LU
+            SET REC_CLOSE_FLG = TRUE,
+            REC_END_TS = CURRENT_TIMESTAMP
+            WHERE AREA_ID NOT IN
+            (SELECT DISTINCT AREA_ID FROM TEMP_AREA_LU)
+            
+2024-05-06T09:42:49.808420+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:49.808420+0545 - [Info]: ETL of Table: DWH_AREA_LU  has been completed successfully!!!
+2024-05-06T09:42:49.808420+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-05-06T09:42:49.946588+0545 - [Info]: Connection has been closed successfully
+2024-05-06T09:42:49.946588+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

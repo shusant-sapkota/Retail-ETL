@@ -1,0 +1,72 @@
+2024-07-18T15:03:24.366049+0545 - [Info]: ########################## Operations in DWH_SALES_TXN_MASTER Table ##########################
+2024-07-18T15:03:24.366049+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:25.311012+0545 - [Info]: Snowflake has been connected successfully
+2024-07-18T15:03:25.311012+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:25.311012+0545 - [Info]: Creating Temp Table: TEMP_SALES_TXN_DAY
+2024-07-18T15:03:25.312241+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:25.400475+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS TEMP_SALES_TXN_DAY(
+                    TXN_DT DATE,
+                    BUSINESS_DT DATE,
+                    TXN_ID NUMBER(38,0),
+                    ITEM_ID NUMBER(38,0),
+                    LOC_ID NUMBER(38,0),
+                    TXN_TYP VARCHAR(5),
+                    SALES_AMOUNT FLOAT,
+                    SALES_QUANTITY NUMBER(38,0),
+                    SALES_COST FLOAT,
+                    SALES_DISCOUNT FLOAT
+                    )
+2024-07-18T15:03:25.401538+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:25.401538+0545 - [Info]: If table already exists then truncating temp table: TEMP_SALES_TXN_DAY
+2024-07-18T15:03:25.401538+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:25.628945+0545 - [Info]: Query has been executed successfully: TRUNCATE TEMP_SALES_TXN_DAY
+2024-07-18T15:03:25.628945+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:25.925131+0545 - [Info]: Query has been executed successfully: INSERT INTO TEMP_SALES_TXN_DAY (select * from V_SALES_TXN_DAY)
+2024-07-18T15:03:25.925131+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:25.926527+0545 - [Info]: Creating Target Table: DWH_SALES_TXN_MASTER
+2024-07-18T15:03:25.926527+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:26.008960+0545 - [Info]: Query has been executed successfully: 
+CREATE TABLE IF NOT EXISTS DWH_SALES_TXN_MASTER(
+                    TXN_DT TIMESTAMP_NTZ(9),
+                    BUSINESS_DT TIMESTAMP_NTZ(9),
+                    DAY_KEY TIMESTAMP_NTZ(9),
+                    TXN_ID NUMBER(38,0),
+                    TXN_KEY NUMBER(38,0),
+                    ITEM_ID NUMBER(38,0),
+                    TXN_LINE_ITEM_KEY NUMBER(38,0),
+                    LOC_ID NUMBER(38,0),
+                    LOC_KEY NUMBER(38,0),
+                    TXN_TYP VARCHAR(5),
+                    SALES_AMOUNT FLOAT,
+                    SALES_QUANTITY FLOAT,
+                    SALES_COST FLOAT,
+                    SALES_DISCOUNT FLOAT
+                    )
+2024-07-18T15:03:26.008960+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:26.008960+0545 - [Info]: Updating and Inserting Target Table: DWH_SALES_TXN_MASTER under SCD Type-1 Approach
+2024-07-18T15:03:26.008960+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:26.583760+0545 - [Info]: Query has been executed successfully: 
+                MERGE INTO DWH_SALES_TXN_MASTER AS TG
+                USING TEMP_SALES_TXN_DAY AS TM
+                ON TG.TXN_ID||TG.ITEM_ID = TM.TXN_ID||TM.ITEM_ID
+                WHEN MATCHED AND ((TG.TXN_DT <> TM.TXN_DT) OR (TG.BUSINESS_DT <> TM.BUSINESS_DT) OR (TG.LOC_ID <> TM.LOC_ID) OR (TG.TXN_TYP <> TM.TXN_TYP) OR (TG.SALES_AMOUNT <> TM.SALES_AMOUNT) OR (TG.SALES_QUANTITY <> TM.SALES_QUANTITY) OR (TG.SALES_COST <> TM.SALES_COST) OR (TG.SALES_DISCOUNT <> TM.SALES_DISCOUNT))
+                THEN UPDATE SET
+                TG.TXN_DT = TM.TXN_DT,
+                TG.BUSINESS_DT = TM.BUSINESS_DT,
+                TG.LOC_ID = TM.LOC_ID,
+                TG.TXN_TYP = TM.TXN_TYP,
+                TG.SALES_AMOUNT = TM.SALES_AMOUNT,
+                TG.SALES_QUANTITY = TM.SALES_QUANTITY,
+                TG.SALES_COST = TM.SALES_COST,
+                TG.SALES_DISCOUNT = TM.SALES_DISCOUNT
+                WHEN NOT MATCHED
+                THEN INSERT (TXN_DT,BUSINESS_DT,DAY_KEY,TXN_ID,TXN_KEY,ITEM_ID,TXN_LINE_ITEM_KEY,LOC_ID,LOC_KEY,TXN_TYP,SALES_AMOUNT,SALES_QUANTITY,SALES_COST,SALES_DISCOUNT)
+                VALUES(TM.TXN_DT,TM.BUSINESS_DT,TM.TXN_DT,TM.TXN_ID,COALESCE((SELECT MAX(TXN_ID) FROM TEMP_SALES_TXN_DAY WHERE TXN_ID>=0), 0) + RANK() OVER (ORDER BY TXN_ID),
+                TM.ITEM_ID,(SELECT MAX(TXN_LINE_ITEM_KEY)+1 FROM DWH_SALES_TXN_MASTER),TM.LOC_ID,COALESCE((SELECT MAX(LOC_ID) FROM TEMP_SALES_TXN_DAY WHERE LOC_ID>=0), 0) + RANK() OVER (ORDER BY LOC_ID), TM.TXN_TYP,TM.SALES_AMOUNT,TM.SALES_QUANTITY,TM.SALES_COST,TM.SALES_DISCOUNT)
+                
+2024-07-18T15:03:26.584764+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:26.584764+0545 - [Info]: ETL of Table: DWH_SALES_TXN_MASTER  has been completed successfully!!!
+2024-07-18T15:03:26.584764+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2024-07-18T15:03:26.715408+0545 - [Info]: Connection has been closed successfully
+2024-07-18T15:03:26.716408+0545 - ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
